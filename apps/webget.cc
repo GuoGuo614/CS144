@@ -12,16 +12,16 @@ namespace {
 void get_URL( const string& host, const string& path )
 {
   auto socket = TCPSocket();
-  socket.connect(Address(host, "http"));
-  socket.write("GET " + path + " HTTP/1.1\r\n");
-  socket.write("Host: " + host + "\r\n");
-  socket.write("Connection: close\r\n");
-  socket.write("\r\n");
-  socket.shutdown(SHUT_WR);
+  socket.connect( Address( host, "http" ) );
+  socket.write( "GET " + path + " HTTP/1.1\r\n" );
+  socket.write( "Host: " + host + "\r\n" );
+  socket.write( "Connection: close\r\n" );
+  socket.write( "\r\n" );
+  socket.shutdown( SHUT_WR );
 
-  while (!socket.eof()) {
+  while ( !socket.eof() ) {
     string buf;
-    socket.read(buf);
+    socket.read( buf );
     cout << buf;
   }
   socket.close();
