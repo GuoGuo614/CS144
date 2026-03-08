@@ -18,14 +18,14 @@ uint64_t TCPSender::consecutive_retransmissions() const
 
 void TCPSender::push( const TransmitFunction& transmit )
 {
-  while (true) {
+  while ( true ) {
     bool SYN_ {};
     bool FIN_ {};
     if ( next_seqno_ == 0 ) {
       SYN_ = true;
     }
 
-    size_t payload_allowance = remaining_window(); 
+    size_t payload_allowance = remaining_window();
     if ( SYN_ && payload_allowance > 0 ) {
       payload_allowance -= 1;
     }
@@ -48,7 +48,7 @@ void TCPSender::push( const TransmitFunction& transmit )
       .RST = input_.has_error(),
     };
 
-    if (msg.sequence_length() == 0) {
+    if ( msg.sequence_length() == 0 ) {
       break;
     }
 
@@ -57,7 +57,8 @@ void TCPSender::push( const TransmitFunction& transmit )
   }
 }
 
-size_t TCPSender::remaining_window() const {
+size_t TCPSender::remaining_window() const
+{
   uint64_t effective_window = window_size_ == 0 ? 1 : window_size_;
   uint64_t remaining_window = 0;
   if ( effective_window > sequence_numbers_in_flight() ) {
@@ -67,7 +68,8 @@ size_t TCPSender::remaining_window() const {
   return payload_allowance;
 }
 
-string TCPSender::read_payload(size_t max_payload_size) {
+string TCPSender::read_payload( size_t max_payload_size )
+{
   string payload;
   while ( reader().bytes_buffered() > 0 && payload.size() < max_payload_size ) {
     string_view view = reader().peek();
@@ -78,7 +80,7 @@ string TCPSender::read_payload(size_t max_payload_size) {
     payload.append( view.substr( 0, chunk_size ) );
     input_.reader().pop( chunk_size );
   }
-  return payload; 
+  return payload;
 }
 
 void TCPSender::push_outstanding( const TCPSenderMessage& msg )
@@ -87,7 +89,7 @@ void TCPSender::push_outstanding( const TCPSenderMessage& msg )
   outstanding_segments_.push( { msg_end_seqno, msg } );
   next_seqno_ += msg.sequence_length();
   outstanding_count_ += msg.sequence_length();
-  if (!timer.is_running()) {
+  if ( !timer.is_running() ) {
     timer.start( initial_RTO_ms_ );
   }
 }
@@ -102,16 +104,16 @@ TCPSenderMessage TCPSender::make_empty_message() const
 
 void TCPSender::receive( const TCPReceiverMessage& msg )
 {
-  if (msg.RST) {
+  if ( msg.RST ) {
     input_.reader().set_error();
   }
   window_size_ = msg.window_size;
-  if (!msg.ackno.has_value()) {
+  if ( !msg.ackno.has_value() ) {
     return;
   }
   uint64_t abs_ackno = msg.ackno->unwrap( isn_, next_seqno_ );
 
-  if ( remove_outstanding(abs_ackno) ) {
+  if ( remove_outstanding( abs_ackno ) ) {
     consecutive_retransmissions_ = 0;
     if ( outstanding_segments_.empty() ) {
       timer.stop();
@@ -121,7 +123,8 @@ void TCPSender::receive( const TCPReceiverMessage& msg )
   }
 }
 
-bool TCPSender::remove_outstanding(uint64_t abs_ackno) {
+bool TCPSender::remove_outstanding( uint64_t abs_ackno )
+{
   bool new_data_acked = false;
 
   while ( !outstanding_segments_.empty() ) {
@@ -146,7 +149,7 @@ void TCPSender::tick( uint64_t ms_since_last_tick, const TransmitFunction& trans
   if ( timer.is_expired() && !outstanding_segments_.empty() ) {
     auto oldest_outstanding = outstanding_segments_.front().second;
     transmit( oldest_outstanding );
-    
+
     if ( window_size_ > 0 ) {
       consecutive_retransmissions_++;
       timer.double_RTO();
@@ -183,10 +186,12 @@ void Timer::restart()
   time_elapsed_ms_ = 0;
 }
 
-void Timer::double_RTO() {
+void Timer::double_RTO()
+{
   current_RTO_ms_ *= 2;
 }
 
-bool Timer::is_running() const {
+bool Timer::is_running() const
+{
   return timer_running;
 }

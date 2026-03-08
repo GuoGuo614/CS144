@@ -58,8 +58,8 @@ private:
   Reader& reader() { return input_.reader(); }
   void push_outstanding( const TCPSenderMessage& msg );
   size_t remaining_window() const;
-  std::string read_payload(size_t max_payload_size);
-  bool remove_outstanding(uint64_t abs_ackno);
+  std::string read_payload( size_t max_payload_size );
+  bool remove_outstanding( uint64_t abs_ackno );
 
   ByteStream input_;
   Wrap32 isn_;
